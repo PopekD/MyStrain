@@ -6,7 +6,7 @@
 //
 
 import UIKit
-
+import QuartzCore
 
 class ViewController: UIViewController, UISearchBarDelegate,
                       UITableViewDelegate, UITableViewDataSource{
@@ -14,18 +14,21 @@ class ViewController: UIViewController, UISearchBarDelegate,
     
     @IBOutlet weak var Search: UISearchBar!
     @IBOutlet weak var Results: UITableView!
-    
+
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
         Search.delegate = self
         Results.delegate = self
+        Results.backgroundColor = UIColor.clear
         Results.dataSource = self
         Results.allowsSelection = true
         self.hideKeyboardWhenTapped()
         
     }
-    
+ 
+    var SongTitles = [String]()
     var searchResults: [String:String] = [:]
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -34,11 +37,15 @@ class ViewController: UIViewController, UISearchBarDelegate,
     
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         var content = cell.defaultContentConfiguration()
         let videoUrls = Array(searchResults.keys)
         let key = Array(searchResults.keys)[indexPath.row]
         content.text = searchResults[key]!
+        SongTitles.append(searchResults[key]!)
+        cell.backgroundColor = UIColor.clear
+        
         
         
         // Load the image asynchronously from the URL
@@ -80,13 +87,14 @@ class ViewController: UIViewController, UISearchBarDelegate,
         tableView.cellForRow(at: indexPath)?.accessoryView = loadingIndicator
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let vc = storyboard.instantiateViewController(withIdentifier: "MusicPlayerVC") as! MusicPlayerVC
-        // Call the API asynchronously
+
         API.shared.sendmp3Link(videoId: selectedVideoUrl) { result in
 
             switch result {
             case .success(let mp3Link):
                 // Load the view controller from the storyboard
                 vc.url = mp3Link
+
                 
                 // Fetch and set the image asynchronously
                 if let imageURL = URL(string: "https://i.ytimg.com/vi/\(selectedVideoUrl)/maxresdefault.jpg") {
@@ -98,9 +106,11 @@ class ViewController: UIViewController, UISearchBarDelegate,
                             let image = UIImage(data: data)
                             DispatchQueue.main.async {
                                 vc.img = image
-                                // Remove the loading indicator
+                                vc.SongTitle = self.SongTitles[indexPath.row]
+                                
                                 tableView.cellForRow(at: indexPath)?.accessoryView = nil
-                                self.navigationController?.pushViewController(vc, animated: true)
+                                vc.loadViewIfNeeded()
+                                self.tabBarController?.present(vc, animated: true)
                             }
                         }
                     }.resume()
@@ -128,6 +138,7 @@ class ViewController: UIViewController, UISearchBarDelegate,
             switch result {
             case .success(let videoDictionary):
                 self.searchResults = videoDictionary
+                self.SongTitles = [String]()
                 DispatchQueue.main.async {
                     
                     self.Results.reloadData()
@@ -182,5 +193,22 @@ extension UIImage {
         }
         
         return scaledImage
+    }
+}
+
+extension UIColor {
+    convenience init(hex: String) {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
+
+        var rgb: UInt64 = 0
+
+        Scanner(string: hexSanitized).scanHexInt64(&rgb)
+
+        let red = CGFloat((rgb & 0xFF0000) >> 16) / 255.0
+        let green = CGFloat((rgb & 0x00FF00) >> 8) / 255.0
+        let blue = CGFloat(rgb & 0x0000FF) / 255.0
+
+        self.init(red: red, green: green, blue: blue, alpha: 1.0)
     }
 }
