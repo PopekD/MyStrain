@@ -7,19 +7,23 @@
 
 import Foundation
 import UIKit
-
+import MediaPlayer
 class MiniPlayerView: UIView {
 
     static let shared = MiniPlayerView()
     
     // UI components for the mini player
-    private let albumImageView: UIImageView
-    private let songTitleLabel: UILabel
+    private let albumImageView: UIImageView?
+    private let songTitleLabel: UILabel?
     private let artistLabel: UILabel
     private let playButton: UIButton
-    private let previousButton: UIButton
-    private let nextButton: UIButton
-    
+    private let progressBar: UIProgressView
+    private var dateText: String
+    private var channelName: String
+    private var channelID: String
+    var progressTimer: Timer?
+    var isPlaying: Bool!
+
     // Initialize the mini player view
     override init(frame: CGRect) {
         
@@ -28,15 +32,20 @@ class MiniPlayerView: UIView {
         songTitleLabel = UILabel()
         artistLabel = UILabel()
         playButton = UIButton(type: .system)
-        nextButton = UIButton(type: .system)
-        previousButton = UIButton(type: .system)
+        progressBar = UIProgressView()
+        dateText = String()
+        channelName = String()
+        channelID = String()
         
-        print(frame)
         super.init(frame: frame)
         self.isHidden = true;
         
+        progressTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(updateProgressBar), userInfo: nil, repeats: true)
+        NotificationCenter.default.addObserver(self, selector: #selector(handlePlaybackStateChanged(_:)), name: .playbackStateChanged, object: nil)
         configureUI()
         setupConstraints()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+        self.addGestureRecognizer(tapGesture)
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -48,84 +57,86 @@ class MiniPlayerView: UIView {
         self.isHidden = false;
     }
     private func configureUI() {
-        // Customize appearance of albumImageView, labels, and buttons
-        // ...
 
-        // Example configuration:
-        albumImageView.contentMode = .scaleAspectFill
-        songTitleLabel.font = UIFont.boldSystemFont(ofSize: 16)
+        albumImageView!.contentMode = .scaleAspectFill
+        songTitleLabel!.font = UIFont.boldSystemFont(ofSize: 16)
+        
         
         playButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
-        playButton.tintColor = UIColor.init(hex: "#800080")
+        playButton.tintColor = UIColor.white
         playButton.translatesAutoresizingMaskIntoConstraints = false
         
-        previousButton.setImage(UIImage(systemName: "backward.frame.fill"), for: .normal)
-        previousButton.tintColor = UIColor.init(hex: "#800080")
-        previousButton.translatesAutoresizingMaskIntoConstraints = false
-        
-        nextButton.setImage(UIImage(systemName: "forward.frame.fill"), for: .normal)
-        nextButton.tintColor = UIColor.init(hex: "#800080")
-        nextButton.translatesAutoresizingMaskIntoConstraints = false
 
-        // Add targets for button actions (e.g., playButtonTapped, nextButtonTapped)
-        previousButton.addTarget(self, action: #selector(previousButtonTapped), for: .touchUpInside)
-        playButton.addTarget(self, action: #selector(playButtonTapped), for: .touchUpInside)
-        nextButton.addTarget(self, action: #selector(nextButtonTapped), for: .touchUpInside)
+        progressBar.progress = 0
+        progressBar.tintColor = UIColor.init(hex: "#6f2da8")
+        progressBar.translatesAutoresizingMaskIntoConstraints = false
+        
+        
+        playButton.addTarget(self, action: #selector(pauseButtonTapped), for: .touchUpInside)
     }
 
     // Set up Auto Layout constraints for UI components
     private func setupConstraints() {
         // Define constraints for albumImageView
-        albumImageView.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(albumImageView)
+        albumImageView!.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(albumImageView!)
         NSLayoutConstraint.activate([
-            albumImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-            albumImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            albumImageView.widthAnchor.constraint(equalToConstant: 70),
-            albumImageView.heightAnchor.constraint(equalToConstant: 70)
+            albumImageView!.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 25),
+            albumImageView!.centerYAnchor.constraint(equalTo: centerYAnchor),
+            albumImageView!.widthAnchor.constraint(equalToConstant: 70),
+            albumImageView!.heightAnchor.constraint(equalTo: heightAnchor)
         ])
 
         // Define constraints for songTitleLabel
-        songTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(songTitleLabel)
+        songTitleLabel!.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(songTitleLabel!)
         NSLayoutConstraint.activate([
-            songTitleLabel.leadingAnchor.constraint(equalTo: albumImageView.trailingAnchor, constant: 50),
-            songTitleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            songTitleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8), // Adjust the top anchor as needed
-            songTitleLabel.widthAnchor.constraint(equalToConstant: 150),
+            songTitleLabel!.leadingAnchor.constraint(equalTo: albumImageView!.trailingAnchor, constant: 35),
+            songTitleLabel!.centerYAnchor.constraint(equalTo: centerYAnchor),
+            songTitleLabel!.topAnchor.constraint(equalTo: topAnchor, constant: 8), // Adjust the top anchor as needed
+            songTitleLabel!.widthAnchor.constraint(equalToConstant: 200),
         ])
         
-        previousButton.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(previousButton)
-        NSLayoutConstraint.activate([
-            previousButton.leadingAnchor.constraint(equalTo: songTitleLabel.trailingAnchor, constant: 8),
-            previousButton.centerYAnchor.constraint(equalTo: centerYAnchor),
-            previousButton.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-        ])
-        // Define constraints for playButton
+
         playButton.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(playButton)
         NSLayoutConstraint.activate([
-            playButton.leadingAnchor.constraint(equalTo: previousButton.trailingAnchor, constant: 8),
+            playButton.leadingAnchor.constraint(equalTo: songTitleLabel!.trailingAnchor, constant: 8),
             playButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             playButton.topAnchor.constraint(equalTo: topAnchor, constant: 8),
         ])
 
-        // Define constraints for nextButton
-        nextButton.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(nextButton)
+
+        progressBar.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(progressBar)
         NSLayoutConstraint.activate([
-            nextButton.leadingAnchor.constraint(equalTo: playButton.trailingAnchor, constant: 8),
-            nextButton.centerYAnchor.constraint(equalTo: centerYAnchor),
-            nextButton.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            progressBar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
+            progressBar.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
+            progressBar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0),
+            progressBar.heightAnchor.constraint(equalToConstant: 4),
         ])
+
     }
 
+    private func updatePlayButton() {
+        if isPlaying {
+            // Audio is currently playing, show the pause button
+            playButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
+            playButton.addTarget(self, action: #selector(pauseButtonTapped), for: .touchUpInside)
+        } else {
+            // Audio is paused or stopped, show the play button
+            playButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
+            playButton.addTarget(self, action: #selector(playButtonTapped), for: .touchUpInside)
+        }
+    }
 
-    // Implement actions for button taps
+    @objc private func pauseButtonTapped() {
+
+        AudioManager.shared.pauseAudio()
+    }
     @objc private func playButtonTapped() {
-        // Handle play button tap
-        // Implement your audio playback logic here
+
+        AudioManager.shared.resumeAudio()
     }
     @objc private func previousButtonTapped() {
         // Handle play button tap
@@ -138,11 +149,57 @@ class MiniPlayerView: UIView {
     }
 
     // Update the mini player with information about the currently playing item
-    func update(withSongTitle title: String, artist: String, albumImage: UIImage?) {
+    func update(withSongTitle title: String, artist: String, albumImage: UIImage?, dateText: String?, channelName: String?, channelID: String?) {
         // Update the UI components with the provided information
         print("Reached miniview" + title)
-        songTitleLabel.text = title
+        songTitleLabel!.text = title
         artistLabel.text = artist
-        albumImageView.image = albumImage
+        albumImageView!.image = albumImage
+        self.dateText = dateText!
+        self.channelName = channelName!
+        self.channelID = channelID!
     }
+    
+
+    @objc private func handlePlaybackStateChanged(_ notification: Notification) {
+        if let isPlaying = notification.userInfo?["isPlaying"] as? Bool {
+
+            self.isPlaying = isPlaying
+            updatePlayButton()
+        }
+    }
+    @objc private func handleTap(_ sender: UITapGestureRecognizer) {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "MusicPlayerVC") as! MusicPlayerVC
+        vc.img = albumImageView?.image
+        vc.SongTitle = songTitleLabel?.text
+        vc.from = "miniPlayer"
+        vc.dateText = dateText
+        vc.channelName = channelName
+        vc.channelId = channelID
+        vc.delegate = MusicPlayerVC.homeDelegate
+        if let navigationController = UIApplication.shared.windows.first?.rootViewController as? UITabBarController {
+            navigationController.present(vc, animated: true)
+        }
+
+    }
+    
+    func updateProgressBarFromNowPlayingInfo() {
+
+        guard let nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo else {
+            return
+        }
+
+        if let playbackDuration = nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] as? Double,
+           let playbackPosition = AudioManager.shared.player?.currentItem?.currentTime().seconds as? Double {
+            // Calculate the progress as a float value between 0.0 and 1.0
+            let progress = Float(playbackPosition / playbackDuration)
+            progressBar.setProgress(progress, animated: true)
+        }
+    }
+    @objc func updateProgressBar() {
+
+        updateProgressBarFromNowPlayingInfo()
+    }
+
 }

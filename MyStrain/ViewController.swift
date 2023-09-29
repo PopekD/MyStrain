@@ -9,12 +9,38 @@ import UIKit
 import QuartzCore
 
 class ViewController: UIViewController, UISearchBarDelegate,
-                      UITableViewDelegate, UITableViewDataSource{
+                      UITableViewDelegate, UITableViewDataSource, MusicPlayerVCDelegate{
+    
+    func performSegueToChannel(videoArray: [VideoInfo], channelName: String, Url: URL?) {
+        
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "ChannelVC") as! ChannelVC
+        vc.ChannelName = channelName
+        if let imageURL = Url {
+            URLSession.shared.dataTask(with: imageURL) { data, response, error in
+                if let error = error {
+                    print("Error loading image: \(error)")
+                    return
+                }
+                
+                if let data = data, let image = UIImage(data: data) {
+
+                    DispatchQueue.main.async {
+                        vc.ChannelThumbnail = image
+                        vc.VideoArray = videoArray
+                        self.navigationController?.pushViewController(vc, animated: true)
+                    }
+                }
+            }.resume()
+        }
+    }
+
     
     
     @IBOutlet weak var Search: UISearchBar!
     @IBOutlet weak var Results: UITableView!
-
+    
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,14 +51,23 @@ class ViewController: UIViewController, UISearchBarDelegate,
         Results.dataSource = self
         Results.allowsSelection = true
         self.hideKeyboardWhenTapped()
-        
+        MusicPlayerVC.homeDelegate = self
     }
  
-    var SongTitles = [String]()
-    var searchResults: [String:String] = [:]
+    var searchSection = 0
+    var searchResults = [VideoInfo]()
+    var suggestedResults = [String]()
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return searchResults.count
+        switch searchSection
+        {
+        case 0:
+            return suggestedResults.count
+        case 1:
+            return searchResults.count
+        default:
+            return 0
+        }
     }
     
     
@@ -40,86 +75,116 @@ class ViewController: UIViewController, UISearchBarDelegate,
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         var content = cell.defaultContentConfiguration()
-        let videoUrls = Array(searchResults.keys)
-        let key = Array(searchResults.keys)[indexPath.row]
-        content.text = searchResults[key]!
-        SongTitles.append(searchResults[key]!)
-        cell.backgroundColor = UIColor.clear
         
-        
-        
-        // Load the image asynchronously from the URL
-        if let imageURL = URL(string: "https://i.ytimg.com/vi/"+videoUrls[indexPath.row]+"/hqdefault.jpg") {
-            URLSession.shared.dataTask(with: imageURL) { data, response, error in
-                if let error = error {
-                    print("Error loading image: \(error)")
-                    return
-                }
-                
-                if let data = data, let image = UIImage(data: data) {
-                    // Set the image on the main queue
-                    let targetSize = CGSize(width: 80, height: 80) // Specify the desired size
-
-                    let scaledImage = image.scalePreservingAspectRatio(
-                        targetSize: targetSize
-                    )
-                    
-                    DispatchQueue.main.async {
-                        content.image = scaledImage
-                        cell.contentConfiguration = content
+        switch searchSection
+        {
+        case 0:
+            let search = suggestedResults[indexPath.row]
+            content.text = search
+            content.image = UIImage(systemName: "magnifyingglass.circle")
+            content.imageProperties.tintColor = UIColor.darkGray
+            cell.backgroundColor = UIColor.clear
+            cell.contentConfiguration = content
+        case 1:
+            let search = searchResults[indexPath.row]
+            content.text = search.title
+            cell.backgroundColor = UIColor.clear
+            
+            
+            
+            // Load the image asynchronously from the URL
+            if let imageURL = URL(string: "https://i.ytimg.com/vi/"+search.videoId+"/hqdefault.jpg") {
+                URLSession.shared.dataTask(with: imageURL) { data, response, error in
+                    if let error = error {
+                        print("Error loading image: \(error)")
+                        return
                     }
-                }
-            }.resume()
+                    
+                    if let data = data, let image = UIImage(data: data) {
+                        // Set the image on the main queue
+                        let targetSize = CGSize(width: 80, height: 80) // Specify the desired size
+
+                        let scaledImage = image.scalePreservingAspectRatio(
+                            targetSize: targetSize
+                        )
+                        
+                        DispatchQueue.main.async {
+                            content.image = scaledImage
+                            cell.contentConfiguration = content
+                        }
+                    }
+                }.resume()
+            }
+        default:
+            return cell
         }
+        
         
         return cell
     }
 
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let videoUrls = Array(searchResults.keys)
         
-        let selectedVideoUrl = videoUrls[indexPath.row]
-        
-        // Show a loading indicator while the API call is in progress (optional)
-        let loadingIndicator = UIActivityIndicatorView(style: .medium)
-        loadingIndicator.startAnimating()
-        tableView.cellForRow(at: indexPath)?.accessoryView = loadingIndicator
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "MusicPlayerVC") as! MusicPlayerVC
+        switch searchSection
+        {
+        case 0:
+            let search = suggestedResults[indexPath.row]
+            Search.text = search
+            let loadingIndicator = UIActivityIndicatorView(style: .medium)
+            loadingIndicator.startAnimating()
+            tableView.cellForRow(at: indexPath)?.accessoryView = loadingIndicator
+            SearchClicked(word: search)
+        case 1:
+            let search = searchResults[indexPath.row]
+            
+            // Show a loading indicator while the API call is in progress (optional)
+            let loadingIndicator = UIActivityIndicatorView(style: .medium)
+            loadingIndicator.startAnimating()
+            tableView.cellForRow(at: indexPath)?.accessoryView = loadingIndicator
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            let vc = storyboard.instantiateViewController(withIdentifier: "MusicPlayerVC") as! MusicPlayerVC
+            vc.delegate = self
+            API.shared.sendmp3Link(videoId: search.videoId) { result in
 
-        API.shared.sendmp3Link(videoId: selectedVideoUrl) { result in
+                switch result {
+                case .success(let mp3Link):
+                    // Load the view controller from the storyboard
+                    vc.url = mp3Link
 
-            switch result {
-            case .success(let mp3Link):
-                // Load the view controller from the storyboard
-                vc.url = mp3Link
-
-                
-                // Fetch and set the image asynchronously
-                if let imageURL = URL(string: "https://i.ytimg.com/vi/\(selectedVideoUrl)/maxresdefault.jpg") {
-                    URLSession.shared.dataTask(with: imageURL) { data, response, error in
-                        if let error = error {
-                            print("Image download error: \(error)")
-                            // Handle the error as needed
-                        } else if let data = data {
-                            let image = UIImage(data: data)
-                            DispatchQueue.main.async {
-                                vc.img = image
-                                vc.SongTitle = self.SongTitles[indexPath.row]
-                                
-                                tableView.cellForRow(at: indexPath)?.accessoryView = nil
-                                vc.loadViewIfNeeded()
-                                self.tabBarController?.present(vc, animated: true)
+                    
+                    // Fetch and set the image asynchronously
+                    if let imageURL = URL(string: "https://i.ytimg.com/vi/\(search.videoId)/maxresdefault.jpg") {
+                        URLSession.shared.dataTask(with: imageURL) { data, response, error in
+                            if let error = error {
+                                print("Image download error: \(error)")
+                                // Handle the error as needed
+                            } else if let data = data {
+                                let image = UIImage(data: data)
+                                DispatchQueue.main.async {
+                                    vc.img = image
+                                    vc.SongTitle = search.title
+                                    vc.from = "cell"
+                                    vc.dateText = search.publishDate
+                                    vc.channelName = search.channelName
+                                    vc.channelId = search.channelID
+                                    tableView.cellForRow(at: indexPath)?.accessoryView = nil
+                                    self.navigationController?.present(vc, animated: true)
+                                    
+                                }
                             }
-                        }
-                    }.resume()
+                        }.resume()
+                    }
+                case .failure(let error):
+                    // Handle the API error
+                    print("API Error: \(error)")
                 }
-            case .failure(let error):
-                // Handle the API error
-                print("API Error: \(error)")
             }
+        default:
+            return
         }
+        
+
     }
 
 
@@ -127,20 +192,29 @@ class ViewController: UIViewController, UISearchBarDelegate,
 
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText.isEmpty
+        {
+            searchSection = 0
+            Results.reloadData()
+        }
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(performSearch), object: nil)
         perform(#selector(performSearch), with: searchBar.text, afterDelay: 0.5) // Pass the search text as an argument
     }
-
-    @objc func performSearch(_ searchText: String?) {
-        guard let searchText = searchText else { return }
-        
-        API.shared.searchVideos(searchWord: searchText) { result in
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
+    {
+        SearchClicked(word: searchBar.text!)
+    }
+    func SearchClicked(word: String)
+    {
+        API.shared.searchVideos(searchWord: word) { result in
             switch result {
             case .success(let videoDictionary):
+                self.searchSection = 1
+                self.searchResults = [VideoInfo]()
                 self.searchResults = videoDictionary
-                self.SongTitles = [String]()
+                self.suggestedResults = [String]()
                 DispatchQueue.main.async {
-                    
                     self.Results.reloadData()
                 }
             case .failure(let error):
@@ -148,6 +222,25 @@ class ViewController: UIViewController, UISearchBarDelegate,
             }
         }
     }
+
+    @objc func performSearch(_ searchText: String?) {
+        
+        API.shared.autoCompletion(searchword: searchText!){result in
+            switch result
+            {
+            case .success(let suggestedTitles):
+                self.suggestedResults = suggestedTitles
+                
+                DispatchQueue.main.async {
+                    self.Results.reloadData()
+                }
+                
+            case .failure(let error):
+                print(error)
+            }
+        }
+    }
+    
 
 
     
@@ -212,3 +305,7 @@ extension UIColor {
         self.init(red: red, green: green, blue: blue, alpha: 1.0)
     }
 }
+extension Notification.Name {
+    static let playbackStateChanged = Notification.Name("playbackStateChanged")
+}
+
