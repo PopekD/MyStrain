@@ -133,6 +133,37 @@ class AudioManager {
             return .success
         }
     }
+    func seek30() {
+        guard let player = player,
+              let currentItem = player.currentItem else {
+            // Handle the case where the player or current item is not available
+            return
+        }
 
+        let currentTime = currentItem.currentTime()
+        let targetTime = CMTimeAdd(currentTime, CMTime(seconds: 30, preferredTimescale: currentTime.timescale))
+
+        // Ensure that the target time is within the duration of the media
+        let clampedTime = CMTimeClampToRange(targetTime, range: CMTimeRange(start: .zero, end: currentItem.duration))
+
+        player.seek(to: clampedTime)
+    }
+
+    func back15()
+    {
+        guard let player = player,
+              let currentItem = player.currentItem else {
+            // Handle the case where the player or current item is not available
+            return
+        }
+
+        let currentTime = currentItem.currentTime()
+        let targetTime = CMTimeAdd(currentTime, CMTime(seconds: -15, preferredTimescale: currentTime.timescale))
+
+        // Ensure that the target time is within the duration of the media
+        let clampedTime = CMTimeClampToRange(targetTime, range: CMTimeRange(start: .zero, end: currentItem.duration))
+
+        player.seek(to: clampedTime)
+    }
 
 }

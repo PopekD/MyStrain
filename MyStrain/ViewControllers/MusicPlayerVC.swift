@@ -2,7 +2,7 @@ import UIKit
 import MediaPlayer
 
 protocol MusicPlayerVCDelegate: AnyObject {
-    func performSegueToChannel(videoArray: [VideoInfo], channelName: String, Url: URL?)
+    func performSegueToChannel(videoArray: [VideoInfo], channelName: String, Url: URL?, playlistInfo: [PlayListInfo])
 }
 
 class MusicPlayerVC: UIViewController{
@@ -31,6 +31,9 @@ class MusicPlayerVC: UIViewController{
     @IBOutlet weak var durationLabel: UILabel!
     @IBOutlet weak var elapsedTimeLabel: UILabel!
     @IBOutlet weak var ChanelButton: UIButton!
+    @IBOutlet weak var backward15: UIButton!
+    @IBOutlet weak var seek30: UIButton!
+    @IBOutlet weak var volumeSlider: UISlider!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -51,7 +54,8 @@ class MusicPlayerVC: UIViewController{
         
         progressBar.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
         progressBar.addTarget(self, action: #selector(sliderTouchUp), for: .touchUpInside)
-
+        volumeSlider.addTarget(self, action: #selector(volumeSliderValueChanged), for: .valueChanged)
+        
         NotificationCenter.default.addObserver(self, selector: #selector(handlePlaybackStateChanged(_:)), name: .playbackStateChanged, object: nil)
         if(from == "miniPlayer"){isPlaying = MiniPlayerView.shared.isPlaying}
         updatePlayButton()
@@ -70,6 +74,8 @@ class MusicPlayerVC: UIViewController{
         DateLabel.text = dateText!
         ChanelButton.setTitle(channelName!, for: .normal)
         ChanelButton.addTarget(self, action: #selector(SearchChannel), for: .touchUpInside)
+        seek30.addTarget(self, action: #selector(seekTO30), for: .touchUpInside)
+        backward15.addTarget(self, action: #selector(backTO15), for: .touchUpInside)
     }
 
 
@@ -208,7 +214,8 @@ class MusicPlayerVC: UIViewController{
     @objc func SearchChannel()
     {
         
-        self.dismiss(animated: true)
+        dismiss(animated: true)
+
         Task
         {
             API.shared.searchChannelVideos(channelId: channelId!) { result in
@@ -216,7 +223,7 @@ class MusicPlayerVC: UIViewController{
                 {
                     case .success(let videoDictionary):
                         DispatchQueue.main.async {
-                            self.delegate?.performSegueToChannel(videoArray: videoDictionary.0,channelName: self.channelName!, Url: videoDictionary.1)
+                            self.delegate?.performSegueToChannel(videoArray: videoDictionary.0,channelName: self.channelName!, Url: videoDictionary.1, playlistInfo: videoDictionary.2)
                         }
                     default:
                         return
@@ -225,4 +232,17 @@ class MusicPlayerVC: UIViewController{
         }
 
     }
+    
+    @objc func seekTO30()
+    {
+        AudioManager.shared.seek30()
+    }
+    @objc func backTO15()
+    {
+        AudioManager.shared.back15()
+    }
+    @objc func volumeSliderValueChanged() {
+        
+    }
+
 }
