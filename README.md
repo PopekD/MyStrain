@@ -9,5 +9,6 @@ Some of the functionalities that are not working yet:
 
 # Visualization
 
-![ezgif com-optimize](https://github.com/PopekD/MyStrain/assets/94826253/f2338372-b719-4ff5-bfd8-86816d154d15)
+![ezgif com-optimize](https://github.com/PopekD/MyStrain/assets/94826253/b591e585-c0a3-4768-9267-2399ca0e36fa)
+
 
