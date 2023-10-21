@@ -9,18 +9,20 @@ class MusicPlayerVC: UIViewController{
 
     weak var delegate: MusicPlayerVCDelegate?
     static var homeDelegate: ViewController?
-    var url: URL?
+    
+    var url: [URL]?
     var img: UIImage?
     var SongTitle: String?
-    var from: String?
-    var progressTimer: Timer?
-    private var isPlaying: Bool!
-    var isSliderBeingDragged = false
     var dateText: String?
     var channelName: String?
     var channelId: String?
-    let formatter = DateComponentsFormatter()
+
     
+    var progressTimer: Timer?
+    var from: String?
+    var isSliderBeingDragged = false
+    let formatter = DateComponentsFormatter()
+    private var isPlaying: Bool!
     
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var titleScrollView: UIScrollView!
@@ -41,15 +43,15 @@ class MusicPlayerVC: UIViewController{
         
         formatter.unitsStyle = .positional
         formatter.zeroFormattingBehavior = .pad
-        setupImageView()
-        setupDateAndChannel()
-        setupTitleScrollView()
         if(from == "cell")
         {
           setupPlayer()
           NotificationCenter.default.post(name: .playbackStateChanged, object: nil, userInfo: ["isPlaying": true])
           isPlaying = true
         }
+        setupImageView()
+        setupDateAndChannel()
+        setupTitleScrollView()
         progressTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(updateProgressBar), userInfo: nil, repeats: true)
         
         progressBar.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
@@ -59,10 +61,12 @@ class MusicPlayerVC: UIViewController{
         NotificationCenter.default.addObserver(self, selector: #selector(handlePlaybackStateChanged(_:)), name: .playbackStateChanged, object: nil)
         if(from == "miniPlayer"){isPlaying = MiniPlayerView.shared.isPlaying}
         updatePlayButton()
+        updateMiniPlayer()
     }
 
 
-    func setupImageView() {
+    func setupImageView()
+    {
         imageView.layer.masksToBounds = true
         imageView.layer.cornerRadius = 2
         imageView.image = img
@@ -116,15 +120,10 @@ class MusicPlayerVC: UIViewController{
     }
 
 
-    func setupPlayer() {
-        guard let url = url else {
-            return
-        }
+    func setupPlayer()
+    {
         
-        AudioManager.shared.playAudio(url: url, title: SongTitle!, artwork: img!)
-        updateMiniPlayer(withTitle: SongTitle!, artist: "Artist Name", albumImage: img)
-        MiniPlayerView.shared.unhide()
-
+        
     }
     
     private func updatePlayButton() {
@@ -154,10 +153,11 @@ class MusicPlayerVC: UIViewController{
         }
     }
     
-    func updateMiniPlayer(withTitle title: String, artist: String, albumImage: UIImage?) {
-        MiniPlayerView.shared.update(withSongTitle: title,
-                                     artist: artist,
-                                     albumImage: albumImage,
+    func updateMiniPlayer() {
+        MiniPlayerView.shared.isHidden = false
+        MiniPlayerView.shared.update(withSongTitle: SongTitle!,
+                                     artist: channelName!,
+                                     albumImage: img!,
                                      dateText: dateText!,
                                      channelName: channelName!,
                                      channelID: channelId!
@@ -202,7 +202,7 @@ class MusicPlayerVC: UIViewController{
     }
     
     @objc func sliderTouchUp(_ sender: UISlider) {
-        if ((AudioManager.shared.player?.currentItem!) != nil) {
+        if ( AudioManager.shared.player?.currentItem != nil) {
             let newTime = Double(sender.value) * AudioManager.shared.player!.currentItem!.duration.seconds
             let cmTime = CMTime(seconds: newTime, preferredTimescale: AudioManager.shared.player!.currentItem!.duration.timescale)
             AudioManager.shared.player!.currentItem?.seek(to: cmTime, completionHandler: { (_) in

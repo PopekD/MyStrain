@@ -193,19 +193,59 @@ class API {
     }
     
 
-    func sendmp3Link(videoId: String, completion: @escaping (Result<URL, Error>) -> Void) {
+    func sendmp3Link(videoId: String, completion: @escaping (Result<URL, Error>) -> Void)
+    {
         Task {
             let stream = try await YouTube(videoID: videoId).livestreams
                                       .filter { $0.streamType == .hls }
                                       .first
 
-            if let mp3Link = stream?.url {
-                    completion(.success(mp3Link))
-                    
-                } else {
-                    
-                    completion(.failure(NetworkError.noData))
+
+            completion(.success(stream!.url))
+ 
+        }
+    }
+    
+    func sendmp3LinkAsync(videoId: String) async throws -> URL {
+        return try await withCheckedThrowingContinuation { continuation in
+            self.sendmp3Link(videoId: videoId) { result in
+                switch result {
+                case .success(let url):
+                    continuation.resume(returning: url)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
                 }
+            }
+        }
+    }
+    
+    func searchVideo(videID: String, completion: @escaping (Result<VideoInfo,Error>)-> Void)
+    {
+        Task
+        {
+            let stream = await VideoInfosResponse.sendRequest(youtubeModel: YTM, data: [.query: videID])
+            guard stream.0 != nil else {return}
+            let results = stream.0
+            
+            let videoArray = VideoInfo(videoId: results?.videoId ?? " ",
+                                       title: results?.title ?? " ",
+                                       channelName: results?.channel.name ?? " ",
+                                       channelID: results?.channel.channelId ?? "0",
+                                       publishDate: " ")
+            completion(.success(videoArray))
+        }
+    }
+    
+    func searchVideoAsync(videoId: String) async throws -> VideoInfo {
+        return try await withCheckedThrowingContinuation { continuation in
+            self.searchVideo(videID: videoId) { result in
+                switch result {
+                case .success(let videoInfo):
+                    continuation.resume(returning: videoInfo)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
         }
     }
 

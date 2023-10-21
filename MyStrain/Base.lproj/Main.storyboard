@@ -86,6 +86,7 @@
                         <outlet property="Results" destination="Sgv-pK-VJ6" id="3ds-zC-rm3"/>
                         <outlet property="Search" destination="fVs-7K-VIJ" id="Lr5-LR-SHf"/>
                         <segue destination="l7g-aJ-SHG" kind="show" identifier="showChannel" id="8HM-ea-b9U"/>
+                        <segue destination="xA3-hO-SKL" kind="modal" id="FHh-ku-3cK"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="G1c-Kd-ie9" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -97,7 +98,7 @@
             <objects>
                 <viewController storyboardIdentifier="MusicPlayerVC" id="xA3-hO-SKL" customClass="MusicPlayerVC" customModule="MyStrain" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="UP5-2h-xWh">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="vQh-28-RD9">
@@ -212,13 +213,32 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="tintColor" white="0.33000000000000002" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </progressView>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="DPU-rG-TlH">
+                                <rect key="frame" x="296" y="723" width="63" height="44"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" image="heart" catalog="system">
+                                    <preferredSymbolConfiguration key="preferredSymbolConfigurationForImage" configurationType="font">
+                                        <fontDescription key="fontDescription" type="system" pointSize="25"/>
+                                    </preferredSymbolConfiguration>
+                                </buttonConfiguration>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="feq-di-k1p">
+                                <rect key="frame" x="35" y="723" width="62" height="44"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" image="shuffle.circle" catalog="system">
+                                    <preferredSymbolConfiguration key="preferredSymbolConfigurationForImage" configurationType="font">
+                                        <fontDescription key="fontDescription" type="system" pointSize="25"/>
+                                    </preferredSymbolConfiguration>
+                                </buttonConfiguration>
+                            </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="3Jb-fS-ieU"/>
                         <color key="backgroundColor" white="0.061091624149659865" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <color key="tintColor" red="0.46666666670000001" green="0.17254901959999999" blue="0.80392156859999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     </view>
                     <toolbarItems/>
-                    <navigationItem key="navigationItem" id="nee-mk-Gp0"/>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
                         <outlet property="ChanelButton" destination="gie-3a-HCu" id="vuB-cr-4hS"/>
@@ -383,7 +403,7 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="KlS-Ce-hYn">
-                                        <rect key="frame" x="115" y="88" width="164" height="112"/>
+                                        <rect key="frame" x="99" y="88" width="194" height="112"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     </imageView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bry-Ec-KwS">
@@ -393,17 +413,6 @@
                                         <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" id="B3j-9h-p3X">
-                                        <rect key="frame" x="319" y="100" width="58" height="35"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <color key="tintColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                        <state key="normal" title="Button"/>
-                                        <buttonConfiguration key="configuration" style="plain" image="shuffle" catalog="system">
-                                            <preferredSymbolConfiguration key="preferredSymbolConfigurationForImage" configurationType="font">
-                                                <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
-                                            </preferredSymbolConfiguration>
-                                        </buttonConfiguration>
-                                    </button>
                                 </subviews>
                                 <color key="backgroundColor" white="0.058102916550000001" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </view>
@@ -431,7 +440,7 @@
                     <navigationItem key="navigationItem" id="Hek-fd-I9l">
                         <barButtonItem key="rightBarButtonItem" style="plain" id="CLH-eK-ArK">
                             <button key="customView" opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" id="tKW-EI-b1H">
-                                <rect key="frame" x="167" y="200" width="58" height="44"/>
+                                <rect key="frame" x="308" y="0.0" width="69" height="44"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" image="play.circle.fill" catalog="system">
@@ -479,10 +488,11 @@
         <image name="forward.frame.fill" catalog="system" width="128" height="91"/>
         <image name="gobackward.15" catalog="system" width="119" height="128"/>
         <image name="goforward.30" catalog="system" width="119" height="128"/>
+        <image name="heart" catalog="system" width="128" height="107"/>
         <image name="magnifyingglass" catalog="system" width="128" height="117"/>
         <image name="pause.fill" catalog="system" width="117" height="128"/>
         <image name="play.circle.fill" catalog="system" width="128" height="123"/>
-        <image name="shuffle" catalog="system" width="128" height="95"/>
+        <image name="shuffle.circle" catalog="system" width="128" height="123"/>
         <image name="speaker" catalog="system" width="128" height="123"/>
         <image name="speaker.wave.2" catalog="system" width="128" height="88"/>
         <systemColor name="secondarySystemBackgroundColor">

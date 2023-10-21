@@ -118,46 +118,36 @@ class ChannelVC: UIViewController, UITableViewDelegate, UITableViewDataSource{
         switch Selected {
         case "Videos":
             let search = VideoArray![indexPath.row]
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let vc = storyboard.instantiateViewController(withIdentifier: "MusicPlayerVC") as! MusicPlayerVC
-
-            API.shared.sendmp3Link(videoId: search.videoId) { result in
-
-                switch result {
-                case .success(let mp3Link):
-                    
-                    vc.url = mp3Link
-
-                    
-                    // Fetch and set the image asynchronously
-                    if let imageURL = URL(string: "https://i.ytimg.com/vi/\(search.videoId)/maxresdefault.jpg") {
-                        URLSession.shared.dataTask(with: imageURL) { data, response, error in
-                            if let error = error {
-                                print("Image download error: \(error)")
-                                // Handle the error as needed
-                            } else if let data = data {
-                                let image = UIImage(data: data)
-                                DispatchQueue.main.async {
-                                    vc.img = image
-                                    vc.SongTitle = search.title
-                                    vc.from = "cell"
-                                    vc.dateText = search.publishDate as! String
-                                    vc.channelName = search.channelName
-                                    vc.channelId = search.channelID
-                                    tableView.cellForRow(at: indexPath)?.accessoryView = nil
-                                    if let navigationController = UIApplication.shared.windows.first?.rootViewController as? UITabBarController {
-                                        navigationController.present(vc, animated: true)
-                                    }
-                                }
-                            }
-                        }.resume()
+            let urlString = URL(string: "https://i.ytimg.com/vi/\(search.videoId)/hqdefault.jpg")
+            var img: UIImage?
+            if let imageURL = urlString {
+                URLSession.shared.dataTask(with: imageURL) { data, response, error in
+                    if let error = error {
+                        print("Error loading image: \(error)")
+                        return
                     }
-                case .failure(let error):
-                    // Handle the API error
-                    print("API Error: \(error)")
+                    
+                    if let data = data, let image = UIImage(data: data) {
+                        img = image
+                    }
+                }.resume()
+            }
+            AudioManager.shared.resetQue()
+            AudioManager.shared.addToQueue(id: search.videoId)
+            AudioManager.shared.playNextPlaylist() {result in
+                switch(result)
+                {
+                case(.success(_)):
+                    DispatchQueue.main.async {
+                        AudioManager.shared.showMusciPlayer(navigation: self.navigationController!,from: "cell", videoThumbnail: img!)
+                        loadingIndicator.stopAnimating()
+                    }
+                case(.failure(let error)):
+                    print(error.localizedDescription)
                 }
             }
-            break
+                
+        break
         case "Playlist":
             let search = PlaylistInfo![indexPath.row]
             let storyboard = UIStoryboard(name: "Main", bundle: nil)

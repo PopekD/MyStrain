@@ -57,9 +57,9 @@ class PlaylistVC: UIViewController, UITableViewDelegate, UITableViewDataSource
                 }
                 
                 if let data = data, let image = UIImage(data: data) {
-
+                    
                     let targetSize = CGSize(width: 80, height: 80)
-
+                    
                     let scaledImage = image.scalePreservingAspectRatio(
                         targetSize: targetSize
                     )
@@ -77,50 +77,40 @@ class PlaylistVC: UIViewController, UITableViewDelegate, UITableViewDataSource
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         let search = Videos[indexPath.row]
-
+        
         let loadingIndicator = UIActivityIndicatorView(style: .medium)
         loadingIndicator.startAnimating()
         tableView.cellForRow(at: indexPath)?.accessoryView = loadingIndicator
         
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "MusicPlayerVC") as! MusicPlayerVC
-        vc.delegate = MusicPlayerVC.homeDelegate
-        API.shared.sendmp3Link(videoId: search.videoId) { result in
-            
-            switch result {
-            case .success(let mp3Link):
-                // Load the view controller from the storyboard
-                vc.url = mp3Link
-                
-                
-                // Fetch and set the image asynchronously
-                if let imageURL = URL(string: "https://i.ytimg.com/vi/\(search.videoId)/maxresdefault.jpg") {
-                    URLSession.shared.dataTask(with: imageURL) { data, response, error in
-                        if let error = error {
-                            print("Image download error: \(error)")
-                            // Handle the error as needed
-                        } else if let data = data {
-                            let image = UIImage(data: data)
-                            DispatchQueue.main.async {
-                                vc.img = image
-                                vc.SongTitle = search.title
-                                vc.from = "cell"
-                                vc.dateText = search.publishDate as! String
-                                vc.channelName = search.channelName
-                                vc.channelId = search.channelID
-                                tableView.cellForRow(at: indexPath)?.accessoryView = nil
-                                self.navigationController?.present(vc, animated: true)
-                                
-                            }
-                        }
-                    }.resume()
+        let urlString = URL(string: "https://i.ytimg.com/vi/\(search.videoId)/hqdefault.jpg")
+        var img: UIImage?
+        if let imageURL = urlString {
+            URLSession.shared.dataTask(with: imageURL) { data, response, error in
+                if let error = error {
+                    print("Error loading image: \(error)")
+                    return
                 }
-            case .failure(let error):
-                // Handle the API error
-                tableView.cellForRow(at: indexPath)?.accessoryView = nil
-                print("API Error: \(error)")
+                
+                if let data = data, let image = UIImage(data: data) {
+                    img = image
+                }
+            }.resume()
+        }
+        AudioManager.shared.resetQue()
+        AudioManager.shared.addToQueue(id: search.videoId)
+        AudioManager.shared.playNextPlaylist() {result in
+            switch(result)
+            {
+            case(.success(_)):
+                DispatchQueue.main.async {
+                    AudioManager.shared.showMusciPlayer(navigation: self.navigationController!,from: "cell", videoThumbnail: img!)
+                    loadingIndicator.stopAnimating()
+                }
+            case(.failure(let error)):
+                print(error.localizedDescription)
             }
         }
-    }
+        
     
+    }
 }
