@@ -3,8 +3,11 @@ The application is not intended for personal use; rather, it is a project aimed 
 
 # The application is still under development
 Some of the functionalities that are not working yet:
+
 -skip, back song
+
 -add to queue 
+
 -play playlists
 
 # Visualization
