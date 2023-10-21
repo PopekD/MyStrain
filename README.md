@@ -9,6 +9,6 @@ Some of the functionalities that are not working yet:
 
 # Visualization
 
-![ezgif com-optimize](https://github.com/PopekD/MyStrain/assets/94826253/b591e585-c0a3-4768-9267-2399ca0e36fa){:height="100px" width="150px"}.
+![ezgif com-optimize](https://github.com/PopekD/MyStrain/assets/94826253/b591e585-c0a3-4768-9267-2399ca0e36fa)
 
 
