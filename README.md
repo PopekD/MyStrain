@@ -6,9 +6,13 @@ Some of the functionalities that are not working yet:
 
 -skip, back song
 
--add to queue 
+-Add to queue 
 
--play playlists
+-Play playlists
+
+-Add to favourites
+
+-Create playlists
 
 # Visualization
 
