@@ -23,6 +23,7 @@
 		6FC73C922ACA4AEF002B1A77 /* PlaylistVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FC73C912ACA4AEF002B1A77 /* PlaylistVC.swift */; };
 		6FC897012AB4A2DC00E71FDB /* YouTubeKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6FC897002AB4A2DC00E71FDB /* YouTubeKit */; };
 		6FCBEA722AC46A0100D25895 /* ChannelVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FCBEA712AC46A0100D25895 /* ChannelVC.swift */; };
+		9CA47A902C063D1C00CF2687 /* Search in Frameworks */ = {isa = PBXBuildFile; productRef = 9CA47A8F2C063D1C00CF2687 /* Search */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,7 +37,6 @@
 		3C60036C2A949F77001C9833 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3C6003762A9BB9A6001C9833 /* API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
 		3C60037B2A9C9CD9001C9833 /* MusicPlayerVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlayerVC.swift; sourceTree = "<group>"; };
-		6F5B97492AB4A66800602213 /* Search */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Search; path = ../../Downloads/Search; sourceTree = "<group>"; };
 		6F90852B2ABDF121001BF642 /* TabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarController.swift; sourceTree = "<group>"; };
 		6FB3A6B52AB855BB0066E71E /* GradientHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientHelper.swift; sourceTree = "<group>"; };
 		6FBDA5B72ABC8B6E00DDE6C6 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerView.swift; sourceTree = "<group>"; };
@@ -53,6 +53,7 @@
 			files = (
 				6F5B974C2AB4A71E00602213 /* Search in Frameworks */,
 				6FC897012AB4A2DC00E71FDB /* YouTubeKit in Frameworks */,
+				9CA47A902C063D1C00CF2687 /* Search in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -128,7 +129,6 @@
 		6FC896F12AB45A2E00E71FDB /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				6F5B97492AB4A66800602213 /* Search */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -152,6 +152,7 @@
 			packageProductDependencies = (
 				6FC897002AB4A2DC00E71FDB /* YouTubeKit */,
 				6F5B974B2AB4A71E00602213 /* Search */,
+				9CA47A8F2C063D1C00CF2687 /* Search */,
 			);
 			productName = MyStrain;
 			productReference = 3C60035B2A949F71001C9833 /* MyStrain.app */;
@@ -185,6 +186,7 @@
 			mainGroup = 3C6003522A949F70001C9833;
 			packageReferences = (
 				6FC896FF2AB4A2DC00E71FDB /* XCRemoteSwiftPackageReference "YouTubeKit" */,
+				9CA47A8E2C063D1C00CF2687 /* XCRemoteSwiftPackageReference "Search" */,
 			);
 			productRefGroup = 3C60035C2A949F71001C9833 /* Products */;
 			projectDirPath = "";
@@ -465,6 +467,14 @@
 				minimumVersion = 0.1.9;
 			};
 		};
+		9CA47A8E2C063D1C00CF2687 /* XCRemoteSwiftPackageReference "Search" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/PopekD/Search.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -476,6 +486,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6FC896FF2AB4A2DC00E71FDB /* XCRemoteSwiftPackageReference "YouTubeKit" */;
 			productName = YouTubeKit;
+		};
+		9CA47A8F2C063D1C00CF2687 /* Search */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9CA47A8E2C063D1C00CF2687 /* XCRemoteSwiftPackageReference "Search" */;
+			productName = Search;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

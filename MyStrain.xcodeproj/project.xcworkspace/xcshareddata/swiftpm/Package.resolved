@@ -1,0 +1,24 @@
+{
+  "originHash" : "2a51ac57ea86b308e231d570671ef30e9753b18474ec52569389d7a429056c1e",
+  "pins" : [
+    {
+      "identity" : "search",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PopekD/Search.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "7de47014a089eddddcb095e2c53f23f6a7cf3a7f"
+      }
+    },
+    {
+      "identity" : "youtubekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/alexeichhorn/YouTubeKit.git",
+      "state" : {
+        "revision" : "ada079b8256f72ff6c352676ed37e185954c360c",
+        "version" : "0.2.2"
+      }
+    }
+  ],
+  "version" : 3
+}
